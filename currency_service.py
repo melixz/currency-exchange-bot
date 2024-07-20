@@ -8,6 +8,12 @@ from dotenv import load_dotenv
 CBR_URL = "https://www.cbr.ru/scripts/XML_daily.asp"
 
 
+def get_redis_host():
+    if os.getenv("INSIDE_DOCKER"):
+        return "redis"
+    return "localhost"
+
+
 async def fetch_currency_rates():
     async with aiohttp.ClientSession() as session:
         async with session.get(CBR_URL) as response:
@@ -35,14 +41,20 @@ async def update_currency_rates():
 
 def main():
     load_dotenv()
-    redis_host = os.getenv("REDIS_HOST", "localhost")
+    redis_host = get_redis_host()
     redis_port = int(os.getenv("REDIS_PORT", 6379))
     redis_db = int(os.getenv("REDIS_DB", 0))
+
+    print(f"Using Redis host: {redis_host}")
 
     global r
     r = redis.Redis(host=redis_host, port=redis_port, db=redis_db)
 
-    asyncio.run(update_currency_rates())
+    try:
+        asyncio.run(update_currency_rates())
+        print("Currency rates updated successfully.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 if __name__ == "__main__":

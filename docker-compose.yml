@@ -1,4 +1,4 @@
-version: '3'
+version: '3.9'
 
 services:
   redis:
@@ -11,5 +11,7 @@ services:
     container_name: "currency_bot"
     env_file:
       - .env
+    environment:
+      - INSIDE_DOCKER=true
     depends_on:
       - redis
