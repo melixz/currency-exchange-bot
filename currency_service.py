@@ -3,13 +3,9 @@ import asyncio
 import xml.etree.ElementTree as ET
 import redis
 import os
+from dotenv import load_dotenv
 
-REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
-REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
-REDIS_DB = int(os.getenv("REDIS_DB", 0))
 CBR_URL = "https://www.cbr.ru/scripts/XML_daily.asp"
-
-r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
 
 async def fetch_currency_rates():
@@ -23,19 +19,31 @@ async def fetch_currency_rates():
                 return None
 
 
-def parse_and_update_rates(xml_data):
+def parse_and_update_rates(redis_client, xml_data):
     root = ET.fromstring(xml_data)
     for currency in root.findall('Valute'):
         char_code = currency.find('CharCode').text
         value = currency.find('Value').text.replace(',', '.')
-        r.set(char_code, float(value))
+        redis_client.set(char_code, float(value))
 
 
 async def update_currency_rates():
     xml_data = await fetch_currency_rates()
     if xml_data:
-        parse_and_update_rates(xml_data)
+        parse_and_update_rates(r, xml_data)
+
+
+def main():
+    load_dotenv()
+    redis_host = os.getenv("REDIS_HOST", "localhost")
+    redis_port = int(os.getenv("REDIS_PORT", 6379))
+    redis_db = int(os.getenv("REDIS_DB", 0))
+
+    global r
+    r = redis.Redis(host=redis_host, port=redis_port, db=redis_db)
+
+    asyncio.run(update_currency_rates())
 
 
 if __name__ == "__main__":
-    asyncio.run(update_currency_rates())
+    main()

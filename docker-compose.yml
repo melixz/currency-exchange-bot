@@ -9,8 +9,7 @@ services:
   bot:
     build: .
     container_name: "currency_bot"
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+    env_file:
+      - .env
     depends_on:
       - redis
