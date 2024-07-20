@@ -1,5 +1,6 @@
+import asyncio
 import logging
-from aiogram import Bot, Dispatcher, executor, types
+from aiogram import Bot, Dispatcher, types
 import redis
 import os
 from dotenv import load_dotenv
@@ -7,7 +8,7 @@ from dotenv import load_dotenv
 logging.basicConfig(level=logging.INFO)
 
 
-def main():
+async def main():
     load_dotenv()
 
     API_TOKEN = os.getenv("TELEGRAM_API_TOKEN")
@@ -16,7 +17,7 @@ def main():
     REDIS_DB = int(os.getenv("REDIS_DB", 0))
 
     bot = Bot(token=API_TOKEN)
-    dp = Dispatcher(bot)
+    dp = Dispatcher()
 
     r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
@@ -42,8 +43,8 @@ def main():
         except Exception as e:
             await message.reply("Ошибка при обработке команды.")
 
-    executor.start_polling(dp, skip_updates=True)
+    await dp.start_polling(bot)
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
