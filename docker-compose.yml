@@ -17,7 +17,9 @@ services:
     depends_on:
       - redis
     environment:
-      - INSIDE_DOCKER=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
     command: ["python", "currency_service.py"]
 
   bot:
@@ -26,7 +28,9 @@ services:
     env_file:
       - .env
     environment:
-      - INSIDE_DOCKER=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
     depends_on:
       - redis
       - updater
