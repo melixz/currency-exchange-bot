@@ -5,6 +5,7 @@ import aioredis
 import os
 from decimal import Decimal
 from dotenv import load_dotenv
+from aiojobs import Scheduler
 
 CBR_URL = "https://www.cbr.ru/scripts/XML_daily.asp"
 
@@ -48,6 +49,13 @@ async def update_currency_rates(redis_url):
             await redis.wait_closed()
 
 
+async def scheduler(redis_url):
+    scheduler = Scheduler()
+    while True:
+        await scheduler.spawn(update_currency_rates(redis_url))
+        await asyncio.sleep(86400)
+
+
 def main():
     load_dotenv()
     redis_host = os.getenv("REDIS_HOST", "localhost")
@@ -55,7 +63,7 @@ def main():
     redis_db = os.getenv("REDIS_DB", "0")
     redis_url = f"redis://{redis_host}:{redis_port}/{redis_db}"
 
-    asyncio.run(update_currency_rates(redis_url))
+    asyncio.run(scheduler(redis_url))
 
 
 if __name__ == "__main__":
