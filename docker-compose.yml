@@ -6,6 +6,20 @@ services:
     container_name: "redis"
     ports:
       - "6379:6379"
+    volumes:
+      - redis-data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+
+  updater:
+    build: .
+    container_name: "currency_updater"
+    depends_on:
+      - redis
+    environment:
+      - INSIDE_DOCKER=true
+    command: ["python", "currency_service.py"]
+
   bot:
     build: .
     container_name: "currency_bot"
@@ -15,3 +29,7 @@ services:
       - INSIDE_DOCKER=true
     depends_on:
       - redis
+      - updater
+
+volumes:
+  redis-data:
