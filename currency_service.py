@@ -24,10 +24,10 @@ async def fetch_currency_rates():
 def parse_currency_data(xml_data):
     root = ET.fromstring(xml_data)
     currencies = {}
-    for currency in root.findall('Valute'):
-        char_code = currency.find('CharCode').text
-        nominal = int(currency.find('Nominal').text)
-        value = Decimal(currency.find('Value').text.replace(',', '.'))
+    for currency in root.findall("Valute"):
+        char_code = currency.find("CharCode").text
+        nominal = int(currency.find("Nominal").text)
+        value = Decimal(currency.find("Value").text.replace(",", "."))
         unit_rate = value / nominal
         currencies[char_code] = str(unit_rate)
     return currencies

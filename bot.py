@@ -30,13 +30,14 @@ async def main():
 
     r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
-    @dp.message(Command(commands=['exchange']))
+    @dp.message(Command(commands=["exchange"]))
     async def exchange(message: types.Message):
         try:
             logging.info(f"Получено сообщение: {message.text}")
             _, from_currency, to_currency, amount = message.text.split()
             logging.info(
-                f"Разобранные значения - from_currency: {from_currency}, to_currency: {to_currency}, amount: {amount}")
+                f"Разобранные значения - from_currency: {from_currency}, to_currency: {to_currency}, amount: {amount}"
+            )
 
             from_rate = r.get(from_currency)
             to_rate = r.get(to_currency)
@@ -47,21 +48,25 @@ async def main():
             to_rate = float(to_rate)
             amount = float(amount)
             result = (amount * from_rate) / to_rate
-            await message.reply(f"{amount} {from_currency} = {result:.2f} {to_currency}")
+            await message.reply(
+                f"{amount} {from_currency} = {result:.2f} {to_currency}"
+            )
         except ValueError as ve:
             logging.error(f"Ошибка: {ve}")
             await message.reply("Ошибка: Валюта не найдена в базе данных.")
         except Exception as e:
             logging.error(f"Ошибка при обработке команды: {e}")
-            await message.reply("Ошибка при обработке команды. Проверьте правильность ввода.")
+            await message.reply(
+                "Ошибка при обработке команды. Проверьте правильность ввода."
+            )
 
-    @dp.message(Command(commands=['rates']))
+    @dp.message(Command(commands=["rates"]))
     async def rates(message: types.Message):
         try:
             logging.info(f"Получено сообщение: {message.text}")
             keys = r.keys()
-            rates = {key.decode('utf-8'): float(r.get(key)) for key in keys}
-            rates_str = '\n'.join([f"{k}: {v}" for k, v in rates.items()])
+            rates = {key.decode("utf-8"): float(r.get(key)) for key in keys}
+            rates_str = "\n".join([f"{k}: {v}" for k, v in rates.items()])
             await message.reply(f"Актуальные курсы валют:\n{rates_str}")
         except Exception as e:
             logging.error(f"Ошибка при обработке команды: {e}")
@@ -70,5 +75,5 @@ async def main():
     await dp.start_polling(bot)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(main())
